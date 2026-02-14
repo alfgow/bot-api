@@ -33,6 +33,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+// ─── Check config exists ──────────────────────────────────
+if (!file_exists(__DIR__ . '/config.php')) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'config.php no encontrado. Copia config.example.php a config.php y configura tus credenciales.',
+    ]);
+    exit;
+}
+
 // ─── Requires ─────────────────────────────────────────────
 require_once __DIR__ . '/middleware/auth.php';
 require_once __DIR__ . '/controllers/AuthController.php';
