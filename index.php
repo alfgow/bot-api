@@ -91,6 +91,36 @@ if ($path === '/api/auth/register' && $method === 'POST') {
 
 // ── Bot Users Routes (all protected) ──────────────────────
 
+// IMPORTANT: Specific routes MUST come before parameterized routes
+
+// POST /api/bot-users/upsert
+if ($path === '/api/bot-users/upsert' && $method === 'POST') {
+    if (!authenticate()) exit;
+    BotUsersController::upsert();
+    exit;
+}
+
+// GET /api/bot-users/session/{sessionId}
+if (preg_match('#^/api/bot-users/session/([^/]+)$#', $path, $matches) && $method === 'GET') {
+    if (!authenticate()) exit;
+    BotUsersController::getById($matches[1]);
+    exit;
+}
+
+// PATCH /api/bot-users/session/{sessionId}
+if (preg_match('#^/api/bot-users/session/([^/]+)$#', $path, $matches) && $method === 'PATCH') {
+    if (!authenticate()) exit;
+    BotUsersController::patch($matches[1]);
+    exit;
+}
+
+// POST /api/bot-users/session/{sessionId}/counters
+if (preg_match('#^/api/bot-users/session/([^/]+)/counters$#', $path, $matches) && $method === 'POST') {
+    if (!authenticate()) exit;
+    BotUsersController::incrementCounters($matches[1]);
+    exit;
+}
+
 // GET /api/bot-users
 if ($path === '/api/bot-users' && $method === 'GET') {
     if (!authenticate()) exit;
@@ -105,7 +135,7 @@ if ($path === '/api/bot-users' && $method === 'POST') {
     exit;
 }
 
-// GET /api/bot-users/{sessionId}
+// GET /api/bot-users/{sessionId}  (legacy, same as /session/{sessionId})
 if (preg_match('#^/api/bot-users/([^/]+)$#', $path, $matches) && $method === 'GET') {
     if (!authenticate()) exit;
     BotUsersController::getById($matches[1]);
