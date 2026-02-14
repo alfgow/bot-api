@@ -10,8 +10,26 @@ require_once __DIR__ . '/../config.php';
 
 function authenticate(): bool
 {
+    // Try multiple sources (IONOS shared hosting strips Authorization header)
+    $authHeader = '';
+
+    // 1. Try getallheaders()
     $headers = getallheaders();
-    $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+    if (!empty($headers['Authorization'])) {
+        $authHeader = $headers['Authorization'];
+    } elseif (!empty($headers['authorization'])) {
+        $authHeader = $headers['authorization'];
+    }
+
+    // 2. Fallback: $_SERVER (set by .htaccess SetEnvIf)
+    if (empty($authHeader) && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
+    }
+
+    // 3. Fallback: REDIRECT_ prefix (some Apache configs)
+    if (empty($authHeader) && !empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        $authHeader = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    }
 
     if (empty($authHeader) || !str_starts_with($authHeader, 'Bearer ')) {
         http_response_code(401);
