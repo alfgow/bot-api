@@ -113,6 +113,7 @@ class ChatHistoriesController
             $page   = max(1, (int) ($_GET['page'] ?? 1));
             $limit  = min(200, max(1, (int) ($_GET['limit'] ?? 50)));
             $offset = ($page - 1) * $limit;
+            $order  = strtoupper($_GET['order'] ?? 'ASC') === 'DESC' ? 'DESC' : 'ASC';
 
             // Verify session exists
             $stmt = $db->prepare('SELECT session_id FROM bot_users WHERE session_id = ?');
@@ -129,9 +130,9 @@ class ChatHistoriesController
             $stmt->execute([$sessionId]);
             $total = (int) $stmt->fetch()['total'];
 
-            // Fetch (ASC for chronological order)
+            // Fetch (stable order by id)
             $stmt = $db->prepare(
-                "SELECT * FROM n8n_chat_histories WHERE session_id = ? ORDER BY id ASC LIMIT $limit OFFSET $offset"
+                "SELECT * FROM n8n_chat_histories WHERE session_id = ? ORDER BY id $order LIMIT $limit OFFSET $offset"
             );
             $stmt->execute([$sessionId]);
             $rows = $stmt->fetchAll();
